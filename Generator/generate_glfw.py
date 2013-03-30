@@ -1,5 +1,4 @@
 import CParser
-from ctypes import *
 
 parser = CParser.CParser('glfw3.h', processAll=False)
 parser.processAll(noCacheWarning=False)
