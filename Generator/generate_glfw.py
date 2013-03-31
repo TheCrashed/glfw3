@@ -69,19 +69,26 @@ def type_to_ctype(type_def):
 				else:
 					cls = '%s * %i' % (cls, array_size)
 
-		elif isinstance(modifier, tuple):
-			raise Exception('FUCK')
-			is_pointer = False
-			convention = '__cdecl'
-
-			if len(mods) == 0:
-				raise Exception('wtf?')
-
 	return cls
 
-with open('glfw.py', 'w') as wrapper:
+with open('libglfw.py', 'w') as wrapper:
 	wrapper.write('import ctypes\n\n\n')
-	wrapper.write('glfwDLL = ctypes.cdll.LoadLibrary(\'glfw3.dll\')\n\n\n')
+	wrapper.write('''\
+glfwLib_paths = ['glfw3.dll', 'libglfw3.so', 'glfw.dll', 'libglfw.so']
+glfwLib = None
+
+for library_path in glfwLib_paths:
+	try:
+		glfwLib = ctypes.cdll.LoadLibrary(library_path)
+		break
+	except OSError:
+		pass
+
+if not glfwLib:
+	raise Exception('Unable to find GLFW3 library: {}'.format(', '.join(glfwLib_paths)))
+
+
+''')
 
 	wrapper.write('## MACROS\n')
 	for macro_name, macro_value in parser.defs['macros'].iteritems():
@@ -101,13 +108,13 @@ with open('glfw.py', 'w') as wrapper:
 			if struct_name in parser.defs['structs']:
 				struct = parser.defs['structs'][struct_name]
 				if len(struct['members']):
-					wrapper.write('\t_fields_ = [\n')
+					wrapper.write('\t_fields_ = (\n')
 					for member_name, member_value, _ in struct['members']:
 						wrapper.write('\t\t(\'%s\', %s),\n' % (member_name, type_to_ctype(member_value)))
-					wrapper.write('\t]\n\n')
+					wrapper.write('\t)\n\n')
 
 				else:
-					wrapper.write('\t\t_fields_ = []\n\n')
+					wrapper.write('\t_fields_ = ()\n\n')
 
 		else:
 			result_type, argument_types, _ = struct_value
@@ -124,16 +131,24 @@ with open('glfw.py', 'w') as wrapper:
 
 	wrapper.write('## FUNCTIONS\n')
 	for function_name, (result_type, argument_types) in parser.defs['functions'].iteritems():
-		wrapper.write('%s = glfwDLL.%s\n' % (function_name, function_name))
+		wrapper.write('%s = glfwLib.%s\n' % (function_name, function_name))
 
 		processed_arg_types = []
+		python_arg_names = []
 		for argument_name, argument_type_def, _ in argument_types:
 			processed_arg_types.append(type_to_ctype(argument_type_def))
+			python_arg_names.append(argument_name)
 
 		arg_types = ', '.join(processed_arg_types)
 		if processed_arg_types == ['None']:
 			arg_types = ''
+		elif len(processed_arg_types) == 1:
+			arg_types += ', '
 
-		wrapper.write('%s.argtypes = [%s]\n' % (function_name, arg_types))
+		if python_arg_names == [None]:
+			python_arg_names = ''
+
+		wrapper.write('%s.argtypes = (%s)\n' % (function_name, arg_types))
 		wrapper.write('%s.restype = %s\n' % (function_name, type_to_ctype(result_type)))
+		#wrapper.write('def %s(%s):\n\treturn _%s(%s)\n' % (function_name, ', '.join(python_arg_names), function_name, ', '.join(python_arg_names)))
 		wrapper.write('\n')

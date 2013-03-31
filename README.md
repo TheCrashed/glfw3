@@ -5,12 +5,23 @@ A Python 2.x wrapper for [GLFW 3](https://github.com/elmindreda/glfw) using ctyp
 
 ## Example
 ```python
-import glfw
+from glfw import *
 
-glfw.Init()
-window = glfw.CreateWindow(800, 600, 'GLFW3', None, None)
-while not glfw.WindowShouldClose(window):
-    glfw.PollEvents()
-    glfw.SwapBuffers(window)
-glfw.Terminate()
+glfwInit()
+
+window = glfwCreateWindow(800, 600, 'GLFW3')
+glfwMakeContextCurrent(window)
+
+while not glfwWindowShouldClose(window):
+    glfwPollEvents()
+    glfwSwapBuffers(window)
+
+glfwTerminate()
 ```
+
+## Included
+libglfw.py
+	An automatically generated wrapper for glfw3.h
+
+glfw.py
+	An abstraction layer above libglfw.py, so you don't need to muck about with ctypes.
