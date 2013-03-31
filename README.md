@@ -1,9 +1,11 @@
 # glfw3
+* * *
 
-## Description
+### Description
 A Python 2.x wrapper for [GLFW 3](https://github.com/elmindreda/glfw) using ctypes. PyPy compatible.
 
-## Example
+
+### Example
 ```python
 from glfw import *
 
@@ -19,9 +21,10 @@ while not glfwWindowShouldClose(window):
 glfwTerminate()
 ```
 
-## Included
-libglfw.py
-	An automatically generated wrapper for glfw3.h
 
-glfw.py
-	An abstraction layer above libglfw.py, so you don't need to muck about with ctypes.
+### Included
+`libglfw.py`
+    An automatically generated wrapper for glfw3.h
+
+`glfw.py`
+	An abstraction layer above libglfw.py, so you don't need to muck around with ctypes.
